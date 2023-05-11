@@ -1,0 +1,18 @@
+{
+    "name": "wytespace/phlo",
+    "description": "Deploying (vanilla) PHP with PHP",
+    "type": "project",
+    "license": "GPL-2.0",
+    "autoload": {
+        "psr-4": {
+            "Wytespace\\Phlo\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ayodeji O",
+            "email": "ayodeji@trulyao.dev"
+        }
+    ],
+    "require": {}
+}
