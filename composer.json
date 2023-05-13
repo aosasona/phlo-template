@@ -14,5 +14,7 @@
             "email": "ayodeji@trulyao.dev"
         }
     ],
-    "require": {}
+    "require": {
+      "ext-fileinfo": "*"
+    }
 }
