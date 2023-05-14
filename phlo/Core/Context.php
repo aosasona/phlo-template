@@ -173,7 +173,7 @@ class Context {
 
 	public function send(string | array $data): void {
 		$mime_type = match (true) {
-			is_string($data) => "text/plain",
+			is_string($data) => "text/html",
 			default => "application/json",
 		};
 		if (is_array($data)) {

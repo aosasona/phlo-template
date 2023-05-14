@@ -4,7 +4,8 @@
     "type": "project",
     "license": "GPL-2.0",
     "scripts": {
-        "start": "COMPOSER_PROCESS_TIMEOUT=9000 php -S localhost:12000 index.php"
+        "start": "COMPOSER_PROCESS_TIMEOUT=9000 php -S localhost:12000 index.php",
+        "build": "echo \"No build command\""
     },
     "autoload": {
         "psr-4": {
