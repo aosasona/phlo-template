@@ -9,9 +9,11 @@ use Phlo\Config;
 
 class Context {
 	// user defined
-	public int $response_code = 200;
-	public string $response_data = '{}'; // usually for JSON, XML etc responses
+	private int $response_code = 200;
+	private string $response_content_type = "application/json";
+	// usually for JSON, XML etc responses
 	public array $ctx_data = []; // for user defined data
+
 
 	// internally generated
 	public string $uri;
@@ -170,19 +172,52 @@ class Context {
 		return $this;
 	}
 
+	public function headers(array $headers): Context {
+		foreach ($headers as $key => $value) {
+			header("{$key}: {$value}");
+		}
+		return $this;
+	}
 
+	public function header(string $key, string $value): Context {
+		header("{$key}: {$value}");
+		return $this;
+	}
+
+	public function contentType(string $mime_type = "application/json"): Context {
+		$this->response_content_type = $mime_type;
+		return $this;
+	}
+
+	/**
+	 * @param  array  $data
+	 *
+	 * @return void
+	 */
+	public function json(array $data): void {
+		$this->contentType("application/json")->send($data);
+	}
+
+	/**
+	 * @param  string|array  $data
+	 *
+	 * @return void
+	 */
 	public function send(string | array $data): void {
 		$mime_type = match (true) {
 			is_string($data) => "text/html",
 			default => "application/json",
 		};
+		if ($this->response_content_type) {
+			$mime_type = $this->response_content_type;
+		}
 		if (is_array($data)) {
 			$data = json_encode($data);
 		}
-		$this->response_data = $data;
+		$response_data = $data;
 		http_response_code($this->response_code);
 		header("Content-Type: {$mime_type}");
-		echo $this->response_data;
+		echo $response_data;
 		die();
 	}
 
@@ -194,12 +229,20 @@ class Context {
 			throw new Exception("File not found");
 		}
 		$mime_type = Runner::getMimeTypeFromExtension($path);
+		if ($this->response_content_type) {
+			$mime_type = $this->response_content_type;
+		}
 		http_response_code($this->response_code);
 		header("Content-Type: {$mime_type}");
 		readfile($path);
 		die();
 	}
 
+	/**
+	 * @param  string  $path
+	 *
+	 * @return void
+	 */
 	public function redirect(string $path): void {
 		header("Location: {$path}");
 		die();
