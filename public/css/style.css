@@ -6,10 +6,10 @@
 
 html, body {
     font-family: 'Roboto', sans-serif;
-    font-size: 16px;
-    background-color: #15101A;
-    color: #f5f5f5;
-    line-height: 1.25;
+    font-size: 14px;
+    background-color: #10101A;
+    color: #efefef;
+    line-height: 1.5;
 }
 
 #app {
@@ -20,13 +20,67 @@ html, body {
     justify-content: center;
 }
 
-.intro_container {
-    background-color: #2F2338;
-}
-
 .counter_container {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 1rem;
+    margin-top: 3rem;
+}
+
+.counter_container button {
+    background-color: white;
+    border: none;
+    color: #242338;
+    padding: .65rem 2.5rem;
+    border-radius: .25rem;
+    font-size: 1rem;
+    transition: .2s ease-in-out;
+}
+
+.counter_container button:hover {
+    opacity: .8;
+    padding: .65rem 3rem;
+    transition: .2s ease-in-out;
+}
+
+.counter_container p#counter {
+    font-size: 2rem;
+    font-weight: 700;
+    opacity: 0.7;
+    padding: 0 1rem;
+}
+
+.content_container {
+    max-width: clamp(300px, 50%, 600px);
+    background-color: #242338;
+    padding: 3rem 4.5rem;
+    text-align: center;
+    border-radius: .5rem;
+}
+
+.content_container h1 {
+    font-size: 3.75rem;
+    margin-bottom: 1.25rem;
+    opacity: 0.7;
+}
+
+
+p.footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background-color: #242338;
+    font-size: 0.75rem;
+    color: #f5f5f5aa;
+    padding: .9rem;
+}
+
+p.footer a {
+    color: #f5f5f5aa;
+}
+
+a:hover {
+    color: #f5f5f5;
 }

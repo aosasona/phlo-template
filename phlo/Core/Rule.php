@@ -1,12 +1,16 @@
 <?php
 
-namespace Wytespace\Phlo\Core;
+declare(strict_types=1);
+
+namespace Phlo\Core;
+
 
 class Rule {
-	private string $prefix;
-	private array $accepted_mime_types = [MimeType::JSON];
-	private RuleType $rule_type;
-	private string $target;
+
+	public string $prefix;
+	public array $accepted_mime_types = [MimeType::JSON];
+	public RuleType $rule_type;
+	public string $target;
 
 	public function __get(string $name) {
 		return $this->$name;
@@ -24,21 +28,15 @@ class Rule {
 	}
 
 	public function serve(Context &$ctx): void {
-		if ($this->rule_type === RuleType::API) {
-			$this->serveApi($ctx);
-		} elseif ($this->rule_type === RuleType::STATIC) {
-			$this->serveStatic($ctx);
-		}
+		$runner = new Runner($ctx, $this);
+		$runner->run();
 	}
 
-	public function serveApi(Context &$ctx): void {}
-
-	public function serveStatic(Context &$ctx): void {}
 
 	/**
 	 * @param  array<MimeType>  $allowed_types
 	 */
-	public function setAcceptedMimeType(array $allowed_types = [MimeType::JSON]): Rule {
+	public function setAcceptedMimeTypes(array $allowed_types = [MimeType::JSON]): Rule {
 		$this->accepted_mime_types = $allowed_types;
 		return $this;
 	}

@@ -1,11 +1,14 @@
 {
     "name": "wytespace/phlo",
-    "description": "Deploying (vanilla) PHP with PHP",
+    "description": "Minimalist PHP framework for builders",
     "type": "project",
     "license": "GPL-2.0",
+    "scripts": {
+        "start": "COMPOSER_PROCESS_TIMEOUT=9000 php -S localhost:12000 index.php"
+    },
     "autoload": {
         "psr-4": {
-            "Wytespace\\Phlo\\": "src/"
+            "Phlo\\": "phlo/"
         }
     },
     "authors": [
