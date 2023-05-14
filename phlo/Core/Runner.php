@@ -30,20 +30,17 @@ class Runner {
 
 		$resources = $this->getRequestResources();
 		if (!$resources) {
-			header("Content-Type: application/json");
-			http_response_code(404);
-			if (is_file("{$this->ROOT_DIR}/{$this->rule->target}/404.json")) {
-				require_once "{$this->ROOT_DIR}/{$this->rule->target}/404.json";
-			} else {
-				echo "{\"ok\": false,\"message\": \"Cannot {$this->ctx->method} {$this->ctx->uri}\"}";
-			}
-			die();
+			$this->handleAPIRuleNotFound();
+		}
+		
+		$this->ctx->setParams($resources['params'] ?? []);
+		$file = "{$resources['dir']}/{$resources['file']}";
+		if (!is_file($file)) {
+			$this->handleAPIRuleNotFound();
 		}
 
-		$this->ctx->setParams($resources['params'] ?? []);
-
 		$this->executeFolderScopedMiddleware($resources['dir'] ?? "");
-		require_once "{$resources['dir']}/{$resources['file']}";
+		require_once $file;
 		$this->executeFileScopedMiddleware();
 		$this->executeAPIMethodHandler();
 		die();
@@ -59,7 +56,8 @@ class Runner {
 			http_response_code(404);
 			$not_found_file = "{$this->ROOT_DIR}/{$this->rule->target}/404.html";
 			if (is_file($not_found_file)) {
-				require_once $not_found_file;
+				header("Content-Type: text/html; charset=utf-8");
+				readfile($not_found_file);
 			}
 			die();
 		}
@@ -89,7 +87,8 @@ class Runner {
 			http_response_code(404);
 			$not_found_file = "{$this->ROOT_DIR}/{$this->rule->target}/404.html";
 			if (is_file($not_found_file)) {
-				require_once $not_found_file;
+				header("Content-Type: text/html; charset=utf-8");
+				readfile($not_found_file);
 			}
 			die();
 		}
@@ -101,19 +100,12 @@ class Runner {
 	}
 
 	private function getRequestResources(): array | null {
-		/*
-		 * - check if the folder exists
-		 * - check if the folder contains a file with the name of the resource
-		 * - if not, check for an index.php in that folder
-		 * - if not, check for a file/folder with the format [param].php where `param` is the name of the param the user is trying to access in the url eg. /user/123
-		 */
-
-
+		$start_time = microtime(true);
 		$resource_dir = "{$this->ROOT_DIR}/{$this->rule->target}";
 		$resource_file = null;
 		$params = [];
 
-		foreach ($this->ctx->path_parts as $resource) {
+		foreach ($this->ctx->path_parts as $idx => $resource) {
 			// check if the folder exists
 			if (is_dir("{$resource_dir}/{$resource}")) {
 				$resource_dir .= "/{$resource}";
@@ -147,7 +139,7 @@ class Runner {
 					$params[$key] = $resource;
 
 					// make sure this is the last iteration before breaking
-					if ($resource === end($this->ctx->path_parts)) {
+					if ($idx === count($this->ctx->path_parts) - 1) {
 						break;
 					}
 					continue;
@@ -158,7 +150,7 @@ class Runner {
 					$params[$key] = $resource;
 
 					// make sure this is the last iteration before breaking to prevent running an handler that doesn't match the request
-					if ($resource === end($this->ctx->path_parts)) {
+					if ($idx === count($this->ctx->path_parts) - 1) {
 						break;
 					}
 				}
@@ -170,7 +162,15 @@ class Runner {
 			$resource_file = "index.html";
 		}
 
-		if (!$resource_file) {
+		// make sure it is an exact match by comparing the number of path parts in the request with the number of path parts in the rule (excluding the route prefix)
+		// while these could have been all chained together, they are separated into individual variables for readability
+		$rule_root_parts_count = count(explode("/", trim("{$this->ROOT_DIR}/{$this->rule->target}", "/")));
+		$abs_resource_file_parts_count = count(explode("/", trim("{$resource_dir}/" . ($resource_file ?? ""), "/")));
+		$matched_resource_count = $abs_resource_file_parts_count - $rule_root_parts_count;
+		$required_match = count($this->ctx->path_parts) - count(explode("/", $this->rule->prefix ?? ""));
+		$is_invalid_match = count($this->ctx->path_parts) !== 0 && $this->rule->rule_type === RuleType::API && $matched_resource_count !== $required_match;
+
+		if (!$resource_file || $is_invalid_match) {
 			return null;
 		}
 
@@ -178,6 +178,7 @@ class Runner {
 			"dir" => $resource_dir,
 			"file" => $resource_file,
 			"params" => $params,
+			"time_taken" => microtime(true) - $start_time,
 		];
 	}
 
@@ -283,5 +284,45 @@ class Runner {
 			"txt" => "text/plain",
 			default => "application/octet-stream",
 		};
+	}
+
+	private function showDebugInfo() {
+		/**
+		 * @var int    $matched_resource_count
+		 * @var int    $required_match
+		 * @var string $resource_dir
+		 * @var string $resource_file
+		 * @var string $rule_prefix
+		 * @var string $absolute_path_with_rule_prefix
+		 * @var array  $path_parts
+		 * @var array  $absolute_path
+		 *
+		 */
+		header("Content-Type: application/json");
+		echo json_encode([
+			"matched_resource_count" => $matched_resource_count,
+			"required_match" => $required_match,
+			"resource_dir" => $resource_dir,
+			"resource_file" => $resource_file,
+			"rule_prefix" => $this->rule->prefix ?? "",
+			"absolute_path_with_rule_prefix" => "{$this->ROOT_DIR}/{$this->rule->prefix}",
+			"path_parts" => $this->ctx->path_parts,
+			"absolute_path" => explode("/", trim("{$this->ROOT_DIR}/{$this->rule->target}", "/"))
+		]);
+		exit;
+	}
+
+	/**
+	 * @return void
+	 */
+	private function handleAPIRuleNotFound(): void {
+		header("Content-Type: application/json");
+		http_response_code(404);
+		if (is_file("{$this->ROOT_DIR}/{$this->rule->target}/404.json")) {
+			require_once "{$this->ROOT_DIR}/{$this->rule->target}/404.json";
+		} else {
+			echo "{\"ok\": false,\"message\": \"Cannot {$this->ctx->method} {$this->ctx->uri}\"}";
+		}
+		die();
 	}
 }

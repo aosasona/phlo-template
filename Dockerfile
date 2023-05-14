@@ -9,4 +9,4 @@ RUN composer install \
 
 FROM trafex/php-nginx
 COPY --chown=nginx --from=composer /app /var/www/html
-COPY --chown=nginx ./conf.d/default.conf /etc/nginx/conf.d/default.conf
+COPY --chown=nginx phlo/conf.d/default.conf /etc/nginx/conf.d/default.conf
