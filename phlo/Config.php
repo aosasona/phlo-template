@@ -48,15 +48,16 @@ class Config {
 				return !str_starts_with($item, '#');
 			}
 		);
-		return array_map(
-			function ($item) {
-				$parts = explode('=', $item);
-				$key = $parts[0] ?? "";
-				$key = trim($key);
-				$value = trim($parts[1] ?? "");
-				return [$key => $value];
-			},
-			$env
-		);
+
+		foreach ($env as $idx => $var) {
+			$parts = explode('=', $var);
+			$key = $parts[0] ?? "";
+			$key = trim($key);
+			$value = trim($parts[1] ?? "");
+			unset($env[$idx]);
+			$env[$key] = $value;
+		}
+
+		return $env;
 	}
 }
