@@ -54,7 +54,7 @@ class Context {
 	public function getEnv(string $key, $default): string {
 		return Config::get($key, $default);
 	}
-
+	
 	public function setParams(array $params = []): void {
 		$this->params = self::sanitizeRecursively($params);
 	}
@@ -228,7 +228,7 @@ class Context {
 		if (!file_exists($path)) {
 			throw new Exception("File not found");
 		}
-		$mime_type = Runner::getMimeTypeFromExtension($path);
+		$mime_type = Runner::getMimeTypeFromPath($path);
 		if ($this->response_content_type) {
 			$mime_type = $this->response_content_type;
 		}

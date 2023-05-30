@@ -32,7 +32,7 @@ class Runner {
 		if (!$resources) {
 			$this->handleAPIRuleNotFound();
 		}
-		
+
 		$this->ctx->setParams($resources['params'] ?? []);
 		$file = "{$resources['dir']}/{$resources['file']}";
 		if (!is_file($file)) {
@@ -64,9 +64,13 @@ class Runner {
 
 		$this->executeFolderScopedMiddleware($resources['dir'] ?? "");
 		$file = "{$resources['dir']}/{$resources['file']}";
-		$mime_type = self::getMimeTypeFromExtension($file);
-		header("Content-Type: {$mime_type}");
-		readfile($file);
+		$mime_type = self::getMimeTypeFromPath($file);
+		header("Content-Type: $mime_type");
+
+		// make the ctx available to the file
+		$ctx = $this->ctx;
+		
+		require $file;
 		die();
 	}
 
@@ -93,7 +97,7 @@ class Runner {
 			die();
 		}
 
-		$mime_type = self::getMimeTypeFromExtension($file);
+		$mime_type = self::getMimeTypeFromPath($file);
 		header("Content-Type: {$mime_type}");
 		readfile($file);
 		die();
@@ -112,9 +116,15 @@ class Runner {
 				continue;
 			}
 
-			// check if the folder contains a file with the name of the resource requested and stop there
+			// check if the folder contains a PHP file with the name of the resource requested and stop there
 			if (is_file("{$resource_dir}/{$resource}.php")) {
 				$resource_file = "{$resource}.php";
+				break;
+			}
+
+			// check if the folder contains an HTML file with the name of the resource requested and stop there
+			if (is_file("{$resource_dir}/{$resource}.html")) {
+				$resource_file = "{$resource}.html";
 				break;
 			}
 
@@ -264,25 +274,46 @@ class Runner {
 		]);
 	}
 
-	public static function getMimeTypeFromExtension(string $filename): string {
-		$ext = pathinfo($filename, PATHINFO_EXTENSION);
-		return match ($ext) {
-			"html" => "text/html",
+	public static function getMimeTypeFromPath(string $filepath): string {
+		$extension = pathinfo($filepath, PATHINFO_EXTENSION);
+		// mime_content_type fails on some systems, so we do a manual lookup first and fallback to mime_content_type
+		return match ($extension) {
+			"php" => "",
+			"js" => "application/javascript",
 			"css" => "text/css",
-			"js" => "text/javascript",
+			"html" => "text/html",
 			"json" => "application/json",
-			"png" => "image/png",
 			"jpg", "jpeg" => "image/jpeg",
+			"png" => "image/png",
 			"gif" => "image/gif",
 			"svg" => "image/svg+xml",
 			"ico" => "image/x-icon",
-			"mp4" => "video/mp4",
-			"mp3" => "audio/mpeg",
-			"wav" => "audio/wav",
+			"txt" => "text/plain",
 			"pdf" => "application/pdf",
 			"zip" => "application/zip",
-			"txt" => "text/plain",
-			default => "application/octet-stream",
+			"rar" => "application/x-rar-compressed",
+			"tar" => "application/x-tar",
+			"gz", "tar.gz" => "application/gzip",
+			"mp3" => "audio/mpeg",
+			"mp4" => "video/mp4",
+			"webm" => "video/webm",
+			"ogg" => "audio/ogg",
+			"wav" => "audio/wav",
+			"webp" => "image/webp",
+			"bmp" => "image/bmp",
+			"csv" => "text/csv",
+			"xml" => "application/xml",
+			"xls" => "application/vnd.ms-excel",
+			"xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"doc" => "application/msword",
+			"docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"ppt" => "application/vnd.ms-powerpoint",
+			"pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+			"odt" => "application/vnd.oasis.opendocument.text",
+			"rtf" => "application/rtf",
+			"7z" => "application/x-7z-compressed",
+			"tar.xz" => "application/x-xz",
+			default => mime_content_type($filepath)
 		};
 	}
 
