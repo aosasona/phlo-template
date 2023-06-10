@@ -25,11 +25,11 @@ Phlo's file and the core lives in the `/phlo` folder so that you can use the `sr
 
 ```json
 {
-  "autoload": {
-    "psr-4": {
-      "App\\": "app/lib/"
-    }
-  }
+	"autoload": {
+		"psr-4": {
+			"App\\": "app/lib/"
+		}
+	}
 }
 ```
 
@@ -62,15 +62,15 @@ Then you can create a handler in the file like this:
 
 use Phlo\Core\Context;
 
-function get(Context $ctx) { 
-// in examples, reference to the context is taken instead to show that it is possible but this would also work as long as you are not modifying it here to pass it on later 
+function get(Context $ctx) {
+// in examples, reference to the context is taken instead to show that it is possible but this would also work as long as you are not modifying it here to pass it on later
   $id = $ctx->getParam("id");
   $ctx->send([
     "id" => $id,
     "name" => "John Doe",
   ]);
 };
-````
+```
 
 To add a handler for a POST request to the same route, you can add a function named `post` in the same file. And to create a handler that handles all, you can add a function named `any` in the same file (this will always be a fallback).
 
@@ -88,7 +88,7 @@ Your folder structure should look like this:
   |-- api
         |-- user
             |-- [id].php
-            |-- _middleware.php   
+            |-- _middleware.php
 ```
 
 ## Static Routes
@@ -97,8 +97,8 @@ Files in static routes are served as they are, which mean you can build your app
 
 ```php
 ...
-	->addRule(Rule::new("public")->setRuleType(RuleType::STATIC)->setAcceptedMimeTypes([MimeType::ANY])->setTarget("public"))
-	->addRule(Rule::new("")->setRuleType(RuleType::STATIC)->setAcceptedMimeTypes([MimeType::ANY])->setTarget("app/pages"))
+	->addRule(Rule::new("public")->setRuleType(RuleType::STATIC)->setTarget("public"))
+	->addRule(Rule::new("")->setRuleType(RuleType::STATIC)->setTarget("app/pages"))
 ...
 ```
 
