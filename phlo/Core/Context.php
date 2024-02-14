@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Phlo\Core;
@@ -7,7 +8,8 @@ use Exception;
 use Phlo\Config;
 
 
-class Context {
+class Context
+{
 	// user defined
 	private int $response_code = 200;
 	private string $response_content_type = "application/json";
@@ -29,16 +31,18 @@ class Context {
 	public array $path_parts;
 
 
-	public function __construct() {
+	public function __construct()
+	{
 		try {
 			$this->parse();
-		} catch (\Exception $e) {
+		} catch (Exception) {
 			http_response_code(500);
-			die();
+			exit;
 		}
 	}
 
-	private function parse(): void {
+	private function parse(): void
+	{
 		$this->uri = $_SERVER['REQUEST_URI'] ?? '/';
 		$this->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 		$this->prefix = $this->extractPrefix();
@@ -51,23 +55,29 @@ class Context {
 		$this->session = self::sanitizeRecursively($_SESSION ?? []);
 	}
 
-	public function getEnv(string $key, $default): string {
+	public function getEnv(string $key, $default): string
+	{
 		return Config::get($key, $default);
 	}
-	
-	public function setParams(array $params = []): void {
+
+	public function setParams(array $params = []): self
+	{
 		$this->params = self::sanitizeRecursively($params);
+		return $this;
 	}
 
-	public function getParams(): array {
+	public function getParams(): array
+	{
 		return $this->params;
 	}
 
-	public function getParam(string $key, $default = ""): string {
+	public function getParam(string $key, $default = ""): string
+	{
 		return $this->params[$key] ?? $default;
 	}
 
-	private function extractPathParts(): array {
+	private function extractPathParts(): array
+	{
 		$path = parse_url(htmlspecialchars($_SERVER['REQUEST_URI']), PHP_URL_PATH) ?? '';
 		$path_parts = explode('/', $path) ?? [""];
 		return array_values(array_filter($path_parts, function ($v) {
@@ -75,7 +85,8 @@ class Context {
 		}));
 	}
 
-	private function extractPrefix(): string {
+	private function extractPrefix(): string
+	{
 		$path_parts = $this->extractPathParts();
 		$prefix = $path_parts[0] ?? '';
 		if (str_contains($prefix, '.')) {
@@ -84,14 +95,16 @@ class Context {
 		return $prefix;
 	}
 
-	private function parseBody(): array {
+	private function parseBody(): array
+	{
 		$json_input = file_get_contents("php://input");
 		$body = json_decode($json_input, true) ?? [];
 		$body = array_merge($body, $_POST ?? []);
 		return self::sanitizeRecursively($body);
 	}
 
-	private function parseHeaders(): array {
+	private function parseHeaders(): array
+	{
 		$headers = (getallheaders() ?? []);
 		$headers = array_merge($headers, $_SERVER ?? []);
 		foreach ($headers as $key => $value) {
@@ -103,7 +116,8 @@ class Context {
 		return self::sanitizeRecursively($headers);
 	}
 
-	private static function sanitizeRecursively(array $data): array {
+	private static function sanitizeRecursively(array $data): array
+	{
 		foreach ($data as $key => $value) {
 			if (is_array($value)) {
 				$data[$key] = self::sanitizeRecursively($value);
@@ -114,29 +128,6 @@ class Context {
 		return $data;
 	}
 
-	/**
-	 * @throws Exception
-	 */
-	public function __get(string $name) {
-		if (!property_exists($this, $name)) {
-			throw new Exception("Property {$name} does not exist");
-		}
-		return $this->$name;
-	}
-
-	/**
-	 * @param  string  $name
-	 * @param  mixed   $value
-	 *
-	 * @return void
-	 * @throws Exception
-	 */
-	public function __set(string $name, mixed $value) {
-		if (!property_exists($this, $name)) {
-			throw new Exception("Property {$name} does not exist");
-		}
-		$this->{$name} = $value;
-	}
 
 
 	// user realm
@@ -147,7 +138,8 @@ class Context {
 	 *
 	 * @return Context
 	 */
-	public function set(string $key, mixed $value): Context {
+	public function set(string $key, mixed $value): Context
+	{
 		$keys = explode('.', $key);
 		$accessor = &$this->ctx_data;
 		foreach ($keys as $k) {
@@ -158,7 +150,8 @@ class Context {
 		return $this;
 	}
 
-	public function get(string $key): mixed {
+	public function get(string $key): mixed
+	{
 		$keys = explode('.', $key);
 		$accessor = &$this->ctx_data;
 		foreach ($keys as $k) {
@@ -167,85 +160,98 @@ class Context {
 		return $accessor ?? $this->getParam($key);
 	}
 
-	public function status(int $code): Context {
+	public function status(int $code): Context
+	{
 		$this->response_code = $code;
 		return $this;
 	}
 
-	public function headers(array $headers): Context {
+	public function headers(array $headers): Context
+	{
 		foreach ($headers as $key => $value) {
 			header("{$key}: {$value}");
 		}
 		return $this;
 	}
 
-	public function header(string $key, string $value): Context {
+	public function header(string $key, string $value): Context
+	{
 		header("{$key}: {$value}");
 		return $this;
 	}
 
-	public function contentType(string $mime_type = "application/json"): Context {
+	public function bodyOr(string $key, string $default = ""): string
+	{
+		return $this->body[$key] ?? $default;
+	}
+
+	public function contentType(string $mime_type = "application/json"): Context
+	{
 		$this->response_content_type = $mime_type;
 		return $this;
 	}
 
 	/**
-	 * @param  array  $data
-	 *
-	 * @return void
+	 * @description Send a JSON response to the client
 	 */
-	public function json(array $data): void {
+	public function json(array $data): never
+	{
 		$this->contentType("application/json")->send($data);
 	}
 
 	/**
-	 * @param  string|array  $data
-	 *
-	 * @return void
+	 * @description Send a response to the client, optionally with a different MIME type. If the data is an array, it will be converted to JSON and the MIME type will be set to "application/json"
 	 */
-	public function send(string | array $data): void {
+	public function send(string | array $data, $override_mime_type = null): never
+	{
 		$mime_type = match (true) {
+			!empty($override_mime_type) => $override_mime_type,
 			is_string($data) => "text/html",
 			default => "application/json",
 		};
+
 		if ($this->response_content_type) {
 			$mime_type = $this->response_content_type;
 		}
-		if (is_array($data)) {
+
+		if (is_array($data) || is_object($data)) {
 			$data = json_encode($data);
 		}
+
 		$response_data = $data;
 		http_response_code($this->response_code);
 		header("Content-Type: {$mime_type}");
 		echo $response_data;
-		die();
+		exit;
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public function sendFile(string $path): void {
+	public function sendFile(string $path): never
+	{
 		if (!file_exists($path)) {
 			throw new Exception("File not found");
 		}
+
 		$mime_type = Runner::getMimeTypeFromPath($path);
 		if ($this->response_content_type) {
 			$mime_type = $this->response_content_type;
 		}
+
 		http_response_code($this->response_code);
 		header("Content-Type: {$mime_type}");
 		readfile($path);
-		die();
+
+		exit;
 	}
 
 	/**
-	 * @param  string  $path
-	 *
-	 * @return void
+	 * @description Redirect to a different page or URL, optionally with a 301 or 302 status code (permanent or temporary) - default is 301
 	 */
-	public function redirect(string $path): void {
-		header("Location: {$path}");
-		die();
+	public function redirect(string $path, $permanent = true): never
+	{
+		header("Location: {$path}", true, $permanent ? 301 : 302);
+		exit;
 	}
 }
-

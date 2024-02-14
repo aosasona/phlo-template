@@ -2,7 +2,8 @@
 
 namespace Phlo\Core;
 
-enum MimeType: string {
+enum MimeType: string
+{
 	case JSON = 'application/json';
 	case FORM_DATA = 'multipart/form-data';
 	case FORM_URLENCODED = 'application/x-www-form-urlencoded';
@@ -11,7 +12,8 @@ enum MimeType: string {
 	case XML = 'application/xml';
 	case ANY = '*/*';
 
-	public static function fromString(string $mime_type): ?MimeType {
+	public static function fromString(string $mime_type): ?MimeType
+	{
 		return match ($mime_type) {
 			'application/json' => self::JSON,
 			'multipart/form-data' => self::FORM_DATA,
@@ -24,3 +26,4 @@ enum MimeType: string {
 		};
 	}
 }
+
