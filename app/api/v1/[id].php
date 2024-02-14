@@ -3,7 +3,8 @@
 use Phlo\Core\Context;
 
 
-function get(Context &$ctx): void {
+function get(Context $ctx): never
+{
 	$ctx->send([
 		"status" => "ok",
 		"message" => "This date is from a middleware: " . $ctx->get("date"),
@@ -14,7 +15,8 @@ function get(Context &$ctx): void {
 	]);
 }
 
-function post(Context &$ctx): void {
+function post(Context $ctx): never
+{
 	$ctx->send([
 		"status" => "ok",
 		"message" => "This date is from a middleware: " . $ctx->get("date"),
@@ -26,7 +28,8 @@ function post(Context &$ctx): void {
 	]);
 }
 
-function any(Context &$ctx): void {
+function any(Context $ctx): never
+{
 	$ctx->send([
 		"status" => "ok",
 		"message" => "This date is from a middleware: " . $ctx->get("date"),
@@ -37,3 +40,4 @@ function any(Context &$ctx): void {
 		]
 	]);
 }
+
