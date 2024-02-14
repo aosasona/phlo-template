@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Phlo\Core;
 
-class Runner {
+class Runner
+{
 	private readonly string $ROOT_DIR;
 	private Context $ctx;
 	private Rule $rule;
 
-	public function __construct(Context &$ctx, Rule &$rule) {
+	public function __construct(Context &$ctx, Rule &$rule)
+	{
 		$this->ctx = $ctx;
 		$this->rule = $rule;
 		$this->ROOT_DIR = dirname(__DIR__, 2);
 	}
 
-	public function run(): void {
+	public function run(): never
+	{
 		match ($this->rule->rule_type) {
 			RuleType::API => $this->serveApi(),
 			RuleType::STATIC => $this->serveStatic(),
@@ -24,7 +27,8 @@ class Runner {
 		};
 	}
 
-	private function serveApi(): void {
+	private function serveApi(): never
+	{
 		$accepted_mime_types = $this->getMimeTypesAsString();
 		$this->setCommonHeaders($accepted_mime_types);
 
@@ -43,11 +47,12 @@ class Runner {
 		require_once $file;
 		$this->executeFileScopedMiddleware();
 		$this->executeAPIMethodHandler();
-		die();
+		exit;
 	}
 
 
-	private function serveStatic(): void {
+	private function serveStatic(): never
+	{
 		$accepted_mime_types = $this->getMimeTypesAsString();
 		$this->setCommonHeaders($accepted_mime_types);
 
@@ -59,7 +64,7 @@ class Runner {
 				header("Content-Type: text/html; charset=utf-8");
 				readfile($not_found_file);
 			}
-			die();
+			exit;
 		}
 
 		$this->executeFolderScopedMiddleware($resources['dir'] ?? "");
@@ -69,19 +74,21 @@ class Runner {
 
 		// make the ctx available to the file
 		$ctx = $this->ctx;
-		
+
 		require $file;
-		die();
+		exit;
 	}
 
 
-	private function serveRedirect(): void {
+	private function serveRedirect(): never
+	{
 		http_response_code(301);
 		header("Location: " . $this->rule->target);
-		die();
+		exit;
 	}
 
-	private function serveSticky(): void {
+	private function serveSticky(): never
+	{
 		$accepted_mime_types = $this->getMimeTypesAsString();
 		$this->setCommonHeaders($accepted_mime_types);
 
@@ -94,16 +101,17 @@ class Runner {
 				header("Content-Type: text/html; charset=utf-8");
 				readfile($not_found_file);
 			}
-			die();
+			exit;
 		}
 
 		$mime_type = self::getMimeTypeFromPath($file);
 		header("Content-Type: {$mime_type}");
 		readfile($file);
-		die();
+		exit;
 	}
 
-	private function getRequestResources(): array | null {
+	private function getRequestResources(): array | null
+	{
 		$start_time = microtime(true);
 		$resource_dir = "{$this->ROOT_DIR}/{$this->rule->target}";
 		$resource_file = null;
@@ -192,12 +200,14 @@ class Runner {
 		];
 	}
 
-	private function getMimeTypesAsString(): array {
-		$accepted_mime_types = array_map(fn($mime_type) => $mime_type->value, $this->rule->accepted_mime_types ?? [MimeType::JSON]);
+	private function getMimeTypesAsString(): array
+	{
+		$accepted_mime_types = array_map(fn ($mime_type) => $mime_type->value, $this->rule->accepted_mime_types ?? [MimeType::JSON]);
 		return array_unique($accepted_mime_types);
 	}
 
-	private function setCommonHeaders(array $accepted_mime_types): void {
+	private function setCommonHeaders(array $accepted_mime_types): void
+	{
 		header_remove("X-Powered-By");
 		header("Access-Control-Allow-Origin: *");
 		header("Access-Control-Allow-Methods: GET, POST");
@@ -205,17 +215,19 @@ class Runner {
 		header("Accept: " . implode(",", $accepted_mime_types));
 	}
 
-	private function validateRequestMimeType(array $accepted_mime_types): void {
-		// fix this later
-		$mime_type = $this->ctx->headers['content-type'] ?? "";
-		if ((!in_array($mime_type, $accepted_mime_types) && !in_array(MimeType::ANY->value, $accepted_mime_types))) {
-			http_response_code(415);
-			die();
-		}
-	}
+	// private function validateRequestMimeType(array $accepted_mime_types): never
+	// {
+	// 	// fix this later
+	// 	$mime_type = $this->ctx->headers['content-type'] ?? "";
+	// 	if ((!in_array($mime_type, $accepted_mime_types) && !in_array(MimeType::ANY->value, $accepted_mime_types))) {
+	// 		http_response_code(415);
+	// 		exit;
+	// 	}
+	// }
 
 
-	private function executeFolderScopedMiddleware(string $target_folder): void {
+	private function executeFolderScopedMiddleware(string $target_folder): void
+	{
 		$middleware_file = "{$target_folder}/_middleware.php";
 		if (is_file($middleware_file)) {
 			require_once $middleware_file;
@@ -225,14 +237,16 @@ class Runner {
 		}
 	}
 
-	private function executeFileScopedMiddleware(): void {
+	private function executeFileScopedMiddleware(): void
+	{
 		if (!function_exists("_init")) {
 			return;
 		}
 		_init($this->ctx);
 	}
 
-	private function executeAPIMethodHandler(): void {
+	private function executeAPIMethodHandler(): void
+	{
 		define("GET", "get");
 		define("POST", "post");
 		define("PUT", "put");
@@ -274,7 +288,8 @@ class Runner {
 		]);
 	}
 
-	public static function getMimeTypeFromPath(string $filepath): string {
+	public static function getMimeTypeFromPath(string $filepath): string
+	{
 		$extension = pathinfo($filepath, PATHINFO_EXTENSION);
 		// mime_content_type fails on some systems, so we do a manual lookup first and fallback to mime_content_type
 		return match ($extension) {
@@ -317,7 +332,8 @@ class Runner {
 		};
 	}
 
-	private function showDebugInfo() {
+	private function showDebugInfo()
+	{
 		/**
 		 * @var int    $matched_resource_count
 		 * @var int    $required_match
@@ -343,10 +359,8 @@ class Runner {
 		exit;
 	}
 
-	/**
-	 * @return void
-	 */
-	private function handleAPIRuleNotFound(): void {
+	private function handleAPIRuleNotFound(): never
+	{
 		header("Content-Type: application/json");
 		http_response_code(404);
 		if (is_file("{$this->ROOT_DIR}/{$this->rule->target}/404.json")) {
@@ -354,6 +368,6 @@ class Runner {
 		} else {
 			echo "{\"ok\": false,\"message\": \"Cannot {$this->ctx->method} {$this->ctx->uri}\"}";
 		}
-		die();
+		exit;
 	}
 }
