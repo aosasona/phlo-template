@@ -14,7 +14,7 @@ use Phlo\Extensions\CSRFTokenException;
  *
  * ## Example
  * ```php
- * use Phlo\Extensions\CSRFToken;
+ * use function Phlo\Extensions\csrf_token;
  * ```
  * ```html
  * <form method="post">
