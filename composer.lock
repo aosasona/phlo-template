@@ -4,8 +4,46 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8786fd3c826098376f3f350eba461bfe",
-    "packages": [],
+    "content-hash": "2f8c4aebaf24b81791e907fc562bd958",
+    "packages": [
+        {
+            "name": "trulyao/phlo",
+            "version": "0.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aosasona/phlo.git",
+                "reference": "25e07ebed21c36b3dcc995b6dce13dfd45c4d52b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aosasona/phlo/zipball/25e07ebed21c36b3dcc995b6dce13dfd45c4d52b",
+                "reference": "25e07ebed21c36b3dcc995b6dce13dfd45c4d52b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Phlo\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Ayodeji O",
+                    "email": "97124713+aosasona@users.noreply.github.com"
+                }
+            ],
+            "description": "A tiny microframework for rapid modern web development",
+            "support": {
+                "issues": "https://github.com/aosasona/phlo/issues",
+                "source": "https://github.com/aosasona/phlo/tree/0.2.2"
+            },
+            "time": "2024-02-15T14:05:22+00:00"
+        }
+    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",

@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../../phlo/Extensions/functions.php';
+require_once __DIR__ . "/../../vendor/trulyao/phlo/src/Extensions/functions.php";
 
 use function Phlo\Extensions\csrf_token;
 

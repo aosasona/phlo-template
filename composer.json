@@ -1,24 +1,20 @@
 {
-    "name": "wytespace/phlo",
-    "description": "Minimalist PHP framework for builders",
-    "type": "project",
-    "license": "GPL-2.0",
-    "scripts": {
-        "start": "COMPOSER_PROCESS_TIMEOUT=9000 php -S localhost:12000 index.php",
-        "build": "echo \"No build command\""
-    },
-    "autoload": {
-        "psr-4": {
-            "Phlo\\": "phlo/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Ayodeji O",
-            "email": "ayodeji@trulyao.dev"
-        }
-    ],
-    "require": {
-        "ext-fileinfo": "*"
-    }
+	"name": "wytespace/phlo-demo",
+	"description": "Minimalist PHP framework for builders",
+	"type": "project",
+	"license": "GPL-2.0",
+	"scripts": {
+		"start": "COMPOSER_PROCESS_TIMEOUT=9000 php -S localhost:12000 index.php",
+		"build": "echo \"No build command\""
+	},
+	"authors": [
+		{
+			"name": "Ayodeji O",
+			"email": "ayodeji@trulyao.dev"
+		}
+	],
+	"require": {
+		"ext-fileinfo": "*",
+		"trulyao/phlo": "^0.2.2"
+	}
 }

@@ -14,13 +14,13 @@ try {
 	}
 
 	Router::new()
-		->addRule(Rule::new("api")->setRuleType(RuleType::API)->setAcceptedMimeTypes([MimeType::JSON, MimeType::FORM_URLENCODED])->setTarget("app/api"))
-		->addRule(Rule::new("public")->setRuleType(RuleType::STATIC)->setAcceptedMimeTypes([MimeType::ANY])->setTarget("public"))
-		->addRule(Rule::new("sticky")->setRuleType(RuleType::STICKY)->setTarget("app/pages/index.html"))
-		->addRule(Rule::new("")->setRuleType(RuleType::STATIC)->setAcceptedMimeTypes([MimeType::ANY])->setTarget("app/pages"))
+		->addRule(Rule::new("api")->setRuleType(RuleType::API)->setAcceptedMimeTypes([MimeType::JSON, MimeType::FORM_URLENCODED])->setTarget(__DIR__ . "/app/api"))
+		->addRule(Rule::new("public")->setRuleType(RuleType::STATIC)->setAcceptedMimeTypes([MimeType::ANY])->setTarget(__DIR__ . "/public"))
+		->addRule(Rule::new("sticky")->setRuleType(RuleType::STICKY)->setTarget(__DIR__ . "/app/pages/index.html"))
+		->addRule(Rule::new("")->setRuleType(RuleType::STATIC)->setAcceptedMimeTypes([MimeType::ANY])->setTarget(__DIR__ . "/app/pages"))
 		->serve();
-
 } catch (Exception $e) {
 	// you don't want to show this Exception message in production
 	echo $e->getMessage();
 }
+
